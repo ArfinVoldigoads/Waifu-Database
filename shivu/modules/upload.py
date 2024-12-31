@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext
 from shivu import application, sudo_users, CHARA_CHANNEL_ID, SUPPORT_CHAT
 
-mongo_url = 'mongodb+srv://Husbando:Husbando@cluster0.lai7z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+mongo_url = 'mongodb+srv://Arfin01:Arfin123@cluster0.e5ccuiv.mongodb.net/?retryWrites=true&w=majority'
 lol = AsyncIOMotorClient(mongo_url)
 db = lol['Character_catcher']
 set_on_data = db['set_on_data']
