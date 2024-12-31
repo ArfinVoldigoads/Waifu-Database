@@ -114,4 +114,4 @@ async def upload_video(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(f'Character Upload Unsuccessful. Error: {str(e)}\nIf you think this is a source error, forward to: {SUPPORT_CHAT}')
 
 # Tambahkan handler baru untuk command /up
-application.add_handler(CommandHandler('hvupload', upload_video))
+application.add_handler(CommandHandler('vupload', upload_video))
