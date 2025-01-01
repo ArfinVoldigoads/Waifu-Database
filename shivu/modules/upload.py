@@ -119,7 +119,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             'category': category
         }
 
-        caption = f"OwO! Add New Husband!\n\n{anime}\n{id}: {character_name}\n(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity})\n"
+        caption = f"OwO! Add New Waifu!\n\n{anime}\n{id}: {character_name}\n(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity})\n"
         if category:
             caption += f"\n{category}\n"
         caption += f"\n➼ ᴀᴅᴅᴇᴅ ʙʏ: <a href=\"tg://user?id={update.effective_user.id}\">{update.effective_user.first_name}</a>"
@@ -200,7 +200,7 @@ async def update_character(update: Update, context: CallbackContext) -> None:
 
         if updated_character:
             # Update the message in the channel
-            caption = f"OwO! New Husband Update!\n\n{updated_character['anime']}\n{updated_character['id']}: {updated_character['name']}\n(🔮𝙍𝘼𝙍𝙄𝙏𝙔: {updated_character['rarity']})\n"
+            caption = f"OwO! New Waifu Update!\n\n{updated_character['anime']}\n{updated_character['id']}: {updated_character['name']}\n(🔮𝙍𝘼𝙍𝙄𝙏𝙔: {updated_character['rarity']})\n"
             if updated_character['category']:
                 caption += f"\n{updated_character['category']}\n"
             caption += f"\n➼ ᴜᴘᴅᴀᴛᴇ ʙʏ: <a href=\"tg://user?id={update.effective_user.id}\">{update.effective_user.first_name}</a>"
