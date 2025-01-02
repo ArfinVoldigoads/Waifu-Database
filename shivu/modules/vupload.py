@@ -90,7 +90,7 @@ async def upload_video(update: Update, context: CallbackContext) -> None:
             'category': category
         }
 
-        caption = f"OwO! Add New Husband!\n\n{anime}\n{id}: {character_name}\n(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity})\n"
+        caption = f"OwO! Add New Waifu!\n\n{anime}\n{id}: {character_name}\n(𝙍𝘼𝙍𝙄𝙏𝙔: {rarity})\n"
         if category:
             caption += f"\n{category}\n"
         caption += f"\n➼ ᴀᴅᴅᴇᴅ ʙʏ: <a href=\"tg://user?id={update.effective_user.id}\">{update.effective_user.first_name}</a>"
