@@ -32,7 +32,7 @@ img_url character-name anime-name rarity-number
 
 use rarity number accordingly rarity Map
 
-rarity_map = 1 (⚪️ Common), 2 (🟠 Rare), 3 (🟢 Medium), 4 (🟡 Legendary), 5 (💮 Special Edition), 6 (🔮 Mythical), 7 (🎐 Celestial), 8 (❄️ Premium Edition), 9 (🫧 X Verse)"""
+rarity_map = 1 (⚪️ Common), 2 (🟠 Rare), 3 (🟢 Medium), 4 (🟡 Legendary), 5 (💮 Special Edition), 6 (🔮 Mythical), 7 (🎐 Celestial), 8 (❄️ Premium Edition), 9 (🫧 X Verse), 10 🎭 (Immortal),"""
 
 CATEGORY_MAP = {
     '🏖': '🏖𝒔𝒖𝒎𝒎𝒆𝒓 🏖',
@@ -105,7 +105,7 @@ async def upload(update: Update, context: CallbackContext) -> None:
             await update.message.reply_text('Invalid URL.')
             return
 
-        rarity_map = {1: "⚪ Common", 2: "🟠 Rare", 3: "🟢 Medium", 4: "🟡 Legendary", 5: "💮 Special Edition", 6: "🔮 Mythical", 7: "🎐 Celestial", 8: "❄️ Premium Edition", 9: "🫧 X Verse"}
+        rarity_map = {1: "⚪ Common", 2: "🟠 Rare", 3: "🟢 Medium", 4: "🟡 Legendary", 5: "💮 Special Edition", 6: "🔮 Mythical", 7: "🎐 Celestial", 8: "❄️ Premium Edition", 9: "🫧 X Verse", 10: "🎭 Immortal"}
         try:
             rarity = rarity_map[int(args[3])]
         except KeyError:
@@ -192,7 +192,7 @@ async def update_character(update: Update, context: CallbackContext) -> None:
         # Update character
         new_value = args[2].replace('-', ' ').title()
         if args[1] == 'rarity':
-            rarity_map = {1: "⚪ Common", 2: "🟠 Rare", 3: "🟢 Medium", 4: "🟡 Legendary", 5: "💮 Special Edition", 6: "🔮 Mythical", 7: "🎐 Celestial", 8: "❄️ Premium Edition", 9: "🫧 X Verse"}
+            rarity_map = {1: "⚪ Common", 2: "🟠 Rare", 3: "🟢 Medium", 4: "🟡 Legendary", 5: "💮 Special Edition", 6: "🔮 Mythical", 7: "🎐 Celestial", 8: "❄️ Premium Edition", 9: "🫧 X Verse", 10: "🎭 Immortal"}
             new_value = rarity_map.get(int(args[2]), args[2])
         elif args[1] == 'category':
             new_value = get_category(args[2]) or args[2]
