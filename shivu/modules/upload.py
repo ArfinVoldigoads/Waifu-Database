@@ -228,4 +228,4 @@ async def update_character(update: Update, context: CallbackContext) -> None:
 
 application.add_handler(CommandHandler('upload', upload))
 application.add_handler(CommandHandler('dd', delete))
-application.add_handler(CommandHandler('update', update_character))
+application.add_handler(CommandHandler('uupdate', update_character))
