@@ -1,5 +1,6 @@
 from pyrogram import Client, filters
 from shivu import sudo_users
+from shivu import shivuu as app
 from motor.motor_asyncio import AsyncIOMotorClient
 
 mongo_url = 'mongodb+srv://Arfin01:Arfin123@cluster0.e5ccuiv.mongodb.net/?retryWrites=true&w=majority'
