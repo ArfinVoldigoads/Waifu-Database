@@ -1,7 +1,26 @@
 from pyrogram import Client, filters
-from shivu import db, collection, user_collection
-from shivu import shivuu as app
 from shivu import sudo_users
+from motor.motor_asyncio import AsyncIOMotorClient
+
+mongo_url = 'mongodb+srv://Arfin01:Arfin123@cluster0.e5ccuiv.mongodb.net/?retryWrites=true&w=majority'
+lol = AsyncIOMotorClient(mongo_url)
+db = lol['Character_catcher']
+set_on_data = db['set_on_data']
+refeer_collection = db['refeer_collection']
+set_off_data = db['set_off_data']
+collection = db['anime_characters_lol']
+safari_cooldown_collection = db["safari_cooldown"]
+safari_users_collection = db["safari_users_collection"]
+sudo_users_collection = db["sudo_users_collection"]
+user_totals_collection = db['user_totals_lmaoooo']
+user_collection = db["user_collection_lmaoooo"]
+global_ban_users_collection = db["global_ban_users_collection"]
+group_user_totals_collection = db['group_user_totalsssssss']
+top_global_groups_collection = db['top_global_groups']
+pm_users = db['total_pm_users']
+banned_groups_collection = db['Banned_Groups']
+BANNED_USERS = db['Banned_Users']
+registered_users = db['registered_users']
 
 DEV_LIST = [6995317382, 7128714969, 6444201098, 5147271956, 5147271956, 2075516632, 5008662958, 7127913934, 5843270062, 1495261563, 6489025882, 6752263178, 7177727796, 6205444949]
 
