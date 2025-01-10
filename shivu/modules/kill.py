@@ -101,16 +101,17 @@ async def update_character_by_id(client, message):
             ]
         ])
 
-        await message.reply_photo(
-            character.get('photo', 'https://via.placeholder.com/150'),
+        await client.send_photo(
+            chat_id=message.chat.id,
+            photo=character.get('img_url', 'https://via.placeholder.com/150'),
             caption=(
-                f"**Name:** {name}\n"
-                f"**Anime:** {anime}\n"
-                f"**Rarity:** {rarity}\n"
-                f"**ID:** {character_id}"
-            ),
-            reply_markup=buttons
-        )
+                f"**Name:** {character.get('name', 'Unknown')}\n"
+                f"**Anime:** {character.get('anime', 'Unknown')}\n"
+                f"**Rarity:** {rarity_map.get(character.get('rarity', 1), 'Unknown')}\n"
+                f"**ID:** {character.get('id', 'Unknown')}"
+             ),
+             reply_markup=buttons
+           )
     except ValueError:
         await message.reply_text("Invalid user ID or character ID.")
     except Exception as e:
