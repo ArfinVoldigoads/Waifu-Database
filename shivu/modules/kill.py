@@ -1,147 +1,118 @@
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from shivu import user_collection, collection
-from shivu import shivuu as app
+import os
+import urllib.request
+from pymongo import ReturnDocument
+from telegram import Update
+from telegram.ext import CommandHandler, CallbackContext
+from shivu import application, sudo_users, collection, user_collection, db, CHARA_CHANNEL_ID
 
-DEV_LIST = [6995317382]
-
-# Rarity Map
-rarity_map = {
-    1: "⚪ Common", 2: "🟠 Rare", 3: "🟢 Medium", 4: "🟡 Legendary", 
-    5: "💮 Special Edition", 6: "🔮 Mythical", 7: "🎐 Celestial", 
-    8: "❄️ Premium Edition", 9: "🫧 X Verse", 10: "🎭 Immortal"
+# Peta Rarity
+RARITY_MAP = {
+    1: "⚪ Common",
+    2: "🟠 Rare",
+    3: "🟢 Medium",
+    4: "🟡 Legendary",
+    5: "💮 Special Edition",
+    6: "🔮 Mythical",
+    7: "🎐 Celestial",
+    8: "❄️ Premium Edition",
+    9: "🫧 X Verse",
+    10: "🎭 Immortal"
 }
 
-# Fungsi Menghapus Karakter
-async def kill_character(character_id):
-    character = await collection.find_one({'id': character_id})
-    if character:
-        try:
-            await user_collection.update_many(
-                {'characters.id': character_id},
-                {'$pull': {'characters': {'id': character_id}}}
-            )
-            return f"Successfully removed character `{character_id}` from all users."
-        except Exception as e:
-            print(f"Error updating users: {e}")
-            raise
-    else:
-        raise ValueError("Character not found.")
+# Peta Kategori
+CATEGORY_MAP = {
+    '🏖': '🏖𝒔𝒖𝒎𝒎𝒆𝒓 🏖',
+    '👘': '👘𝑲𝒊𝒎𝒐𝒏𝒐👘',
+    '🧹': '🧹𝑴𝒂𝒊𝒅🧹',
+    '🐰': '🐰𝑩𝒖𝒏𝒏𝒚🐰',
+    # Tambahkan kategori lainnya jika perlu...
+}
 
-# Fungsi Mengupdate Karakter
-async def update_character_field(user_id, character_id, field, value):
-    user = await user_collection.find_one({'id': user_id})
-    if user:
-        characters = user.get('characters', [])
-        for character in characters:
-            if character['id'] == character_id:
-                character[field] = value
-                await user_collection.update_one(
-                    {'id': user_id},
-                    {'$set': {'characters': characters}}
-                )
-                return f"Successfully updated `{field}` to `{value}` for character `{character_id}`."
-        return f"Character `{character_id}` not found for user `{user_id}`."
-    else:
-        return f"User `{user_id}` not found."
+# Fungsi untuk mendapatkan kategori
+def get_category(name):
+    for emoji in CATEGORY_MAP:
+        if emoji in name:
+            return CATEGORY_MAP[emoji]
+    return ""
 
-# Handler untuk /kill
-@app.on_message(filters.command(["kill"]) & filters.user(DEV_LIST))
-async def remove_character_by_id(client, message):
-    try:
-        character_id = str(message.text.split()[1])
-    except IndexError:
-        await message.reply_text("Please provide a character ID.")
+# Fungsi utama untuk memperbarui karakter
+async def update_character(update: Update, context: CallbackContext):
+    if str(update.effective_user.id) not in sudo_users:
+        await update.message.reply_text("You do not have permission to use this command.")
         return
 
     try:
-        result_message = await kill_character(character_id)
-        await message.reply_text(result_message)
-    except ValueError as e:
-        await message.reply_text(str(e))
+        # Parse argumen
+        args = context.args
+        if len(args) != 3:
+            await update.message.reply_text(
+                "Incorrect format. Please use: /update id field new_value"
+            )
+            return
+
+        character_id = args[0]
+        field = args[1]
+        new_value = args[2].replace("-", " ").title()
+
+        # Validasi field
+        valid_fields = ["img_url", "name", "anime", "rarity", "category"]
+        if field not in valid_fields:
+            await update.message.reply_text(
+                f"Invalid field. Valid fields are: {', '.join(valid_fields)}"
+            )
+            return
+
+        # Proses rarity dan category jika ada
+        if field == "rarity":
+            new_value = RARITY_MAP.get(int(args[2]), args[2])
+        elif field == "category":
+            new_value = get_category(args[2]) or args[2]
+
+        # Update di koleksi utama
+        updated_character = await collection.find_one_and_update(
+            {"id": character_id},
+            {"$set": {field: new_value}},
+            return_document=ReturnDocument.AFTER,
+        )
+
+        if not updated_character:
+            await update.message.reply_text("Character not found in the main collection.")
+            return
+
+        # Update di user_collection
+        await user_collection.update_many(
+            {"characters.id": character_id},
+            {"$set": {f"characters.$.{field}": new_value}}
+        )
+
+        # Update pesan di channel (jika ada)
+        if field in ["name", "rarity", "anime", "category"]:
+            caption = (
+                f"OwO! New Waifu Update!\n\n"
+                f"{updated_character['anime']}\n"
+                f"{updated_character['id']}: {updated_character['name']}\n"
+                f"(𝙍𝘼𝙍𝙄𝙏𝙔: {updated_character['rarity']})\n"
+            )
+            if updated_character["category"]:
+                caption += f"\n{updated_character['category']}\n"
+            caption += f"\n➼ ᴜᴘᴅᴀᴛᴇ ʙʏ: <a href=\"tg://user?id={update.effective_user.id}\">{update.effective_user.first_name}</a>"
+
+            try:
+                await context.bot.edit_message_caption(
+                    chat_id=CHARA_CHANNEL_ID,
+                    message_id=updated_character["message_id"],
+                    caption=caption,
+                    parse_mode="HTML",
+                )
+            except Exception as e:
+                await update.message.reply_text(
+                    f"Character updated, but unable to edit message in channel. Error: {str(e)}"
+                )
+
+        await update.message.reply_text(f"Character `{character_id}` updated successfully.")
+
     except Exception as e:
-        print(f"Error in /kill: {e}")
-        await message.reply_text("An error occurred while processing the command.")
+        await update.message.reply_text(f"An error occurred: {str(e)}")
 
-# Handler untuk /update
-@app.on_message(filters.command(["udate"]) & filters.user(DEV_LIST))
-async def update_character_by_id(client, message):
-    try:
-        args = message.text.split()
-        if len(args) < 3:
-            await message.reply_text("Usage: /update {user_id} {character_id}")
-            return
-
-        user_id = int(args[1])
-        character_id = int(args[2])
-
-        user = await user_collection.find_one({'id': user_id})
-        if not user:
-            await message.reply_text(f"User `{user_id}` not found.")
-            return
-
-        characters = user.get('characters', [])
-        character = next((c for c in characters if c['id'] == character_id), None)
-
-        if not character:
-            await message.reply_text(f"Character `{character_id}` not found for user `{user_id}`.")
-            return
-
-        name = character.get('name', 'Unknown')
-        anime = character.get('anime', 'Unknown')
-        rarity = rarity_map.get(character.get('rarity', 1), "Unknown")
-
-        buttons = InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("Update Name", callback_data=f"update_name:{user_id}:{character_id}"),
-                InlineKeyboardButton("Update Anime", callback_data=f"update_anime:{user_id}:{character_id}")
-            ],
-            [
-                InlineKeyboardButton("Update Rarity", callback_data=f"update_rarity:{user_id}:{character_id}")
-            ]
-        ])
-
-        await client.send_photo(
-            chat_id=message.chat.id,
-            photo=character.get('img_url', 'https://via.placeholder.com/150'),
-            caption=(
-                f"**Name:** {character.get('name', 'Unknown')}\n"
-                f"**Anime:** {character.get('anime', 'Unknown')}\n"
-                f"**Rarity:** {rarity_map.get(character.get('rarity', 1), 'Unknown')}\n"
-                f"**ID:** {character.get('id', 'Unknown')}"
-             ),
-             reply_markup=buttons
-           )
-    except ValueError:
-        await message.reply_text("Invalid user ID or character ID.")
-    except Exception as e:
-        print(f"Error in /update: {e}")
-        await message.reply_text("An error occurred while processing the command.")
-
-# Callback untuk Update
-@app.on_callback_query(filters.regex(r"^update_(name|anime|rarity):(\d+):(\d+)"))
-async def handle_update_callback(client, callback_query):
-    action, user_id, character_id = callback_query.data.split(":")
-    user_id, character_id = int(user_id), int(character_id)
-
-    if action == "update_name":
-        await callback_query.message.reply_text("Send the new name for the character.")
-        # Tambahkan logika untuk menangani input nama baru
-    elif action == "update_anime":
-        await callback_query.message.reply_text("Send the new anime title for the character.")
-        # Tambahkan logika untuk menangani input anime baru
-    elif action == "update_rarity":
-        rarity_buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton(rarity, callback_data=f"set_rarity:{user_id}:{character_id}:{key}")]
-            for key, rarity in rarity_map.items()
-        ])
-        await callback_query.message.reply_text("Select a new rarity:", reply_markup=rarity_buttons)
-
-# Callback untuk Mengubah Rarity
-@app.on_callback_query(filters.regex(r"^set_rarity:(\d+):(\d+):(\d+)"))
-async def set_new_rarity(client, callback_query):
-    user_id, character_id, rarity_key = map(int, callback_query.data.split(":")[1:])
-    result_message = await update_character_field(user_id, character_id, 'rarity', rarity_key)
-
-    await callback_query.answer("Rarity updated successfully!", show_alert=True)
-    await callback_query.message.edit_caption(result_message)
+# Tambahkan handler ke aplikasi
+application.add_handler(CommandHandler("udate", update_character))
